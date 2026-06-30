@@ -1,0 +1,51 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # STAGE 1: CONTINUOUS INTEGRATION (CI)
+  test:
+    name: Run Tests (CI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest test_app.py -v
+
+  # STAGE 2: BUILD AND CREATE ARTIFACT
+  build:
+    name: Build and Package (CD)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p build
+          cp app.py build/
+          cp requirements.txt build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: calculator-app-build
+          path: build/
+
+  # STAGE 3: DEPLOY TO PRODUCTION
+  deploy:
+    name: Deploy to Production (CD)
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: calculator-app-build
+      - run: |
+          echo "DEPLOYING TO PRODUCTION"
+          ls -la calculator-app-build/
+          echo "DEPLOYMENT SUCCESSFUL"
