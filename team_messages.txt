@@ -1,0 +1,2 @@
+Ahmed: Welcome to our DevOps team!
+Sara: Excited to learn CI/CD pipelines
